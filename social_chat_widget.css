@@ -1,0 +1,47 @@
+
+#chat-widget {
+    position:fixed;
+    bottom:15px;
+    right:15px;
+}
+#chat-widget a {
+    color: #fff;
+}
+#events-example img {
+    margin-bottom: 5px;
+    box-shadow: 0px 3px 10px rgb(0 0 0 / 40%);
+    border-radius: 50%;
+    border: 0px solid #000;
+}
+
+#events-example img:hover {
+    box-shadow: 0px 3px 10px rgb(0 0 0 / 70%);  
+}
+
+a.btn-instagram {
+    color: #fff;
+    background: #d6249f;
+    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%,#d6249f 60%,#285AEB 90%);
+}
+
+#insta-chat-tooltip a, #fb-chat-tooltip a, #whatsapp-chat-tooltip a, #skype-chat-tooltip a {
+    color: #fff;
+    text-decoration: none;
+}
+#email-tooltip a, #phone-tooltip a {
+    text-decoration: none;
+}
+.btn-fb {
+    color: #fff;
+    background: #0084ff;
+}
+
+.btn-whatsapp {
+    color: #fff;
+    background: #5acf5f;
+}
+
+.btn-skype {
+    color: #fff;
+    background: #00aef3;
+}

@@ -1,0 +1,504 @@
+<?php
+
+/**
+ * @file
+ * Defines a form in a block for estimating items like taxes and shipping rates
+ * on the cart form.
+ */
+
+function social_chat_widget_init () {
+    
+    $module_css = drupal_get_path('module', 'social_chat_widget') . '/social_chat_widget.css';
+    drupal_add_css($module_css, array('group' => CSS_THEME, 'weight' => 100, 'media' => 'all'));
+    
+    // Add tippedjs for the tooltips
+    $tipped_css = drupal_get_path('module', 'social_chat_widget') . '/tippedjs/tipped.css';
+    drupal_add_css($tipped_css, array('group' => CSS_THEME, 'weight' => 100, 'media' => 'all'));
+    
+    $tipped_js_file = drupal_get_path('module', 'social_chat_widget') . '/tippedjs/tipped.min.js';
+    drupal_add_js($tipped_js_file, 'file');
+    
+    $tipped_js = "jQuery(document).ready(function($) { 
+        Tipped.create('.inline', { position: 'left', skin: 'light' });
+    });";    
+    
+    drupal_add_js($tipped_js, array(
+            'type' => 'inline',
+            'scope' => 'footer',
+            'group' => JS_THEME,
+            'weight' => 5,
+          ));
+    
+    // Add jQuery Collapse
+    $jquery_collapse = drupal_get_path('module', 'social_chat_widget') . '/jquerycollapse/src/jquery.collapse.js';
+    drupal_add_js($jquery_collapse, 'file');
+    
+    $jquery_collapse_storage = drupal_get_path('module', 'social_chat_widget') . '/jquerycollapse/src/jquery.collapse_storage.js';
+    drupal_add_js($jquery_collapse_storage, 'file');
+    
+    $jquery_collapse_cookie = drupal_get_path('module', 'social_chat_widget') . '/jquerycollapse/src/jquery.collapse_cookie_storage.js';
+    drupal_add_js($jquery_collapse_cookie, 'file');
+    
+    $jquery_collapse_js = '(function ($) {
+        var el = $("#events-example"),
+          log = $("#event-log");
+
+        el.collapse({
+            persist: true
+        });
+        
+        $("#btn-toggle-last").click(function() {
+          $("#events-example h3 a").last().trigger("toggle")
+        })}(jQuery));';
+    drupal_add_js($jquery_collapse_js, array(
+            'type' => 'inline',
+            'scope' => 'footer',
+            'group' => JS_THEME,
+            'weight' => 5,
+          ));
+    
+    // Add Animate on Scroll
+    drupal_add_css('https://unpkg.com/aos@2.3.1/dist/aos.css', array('type' => 'external'));
+    drupal_add_js('https://unpkg.com/aos@2.3.1/dist/aos.js', 'external');
+    $aos_init = 'AOS.init();';
+    drupal_add_js($aos_init, array('type' => 'inline', 'scope' => 'footer', 'group' => JS_THEME, 'weight' => 5));
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function social_chat_widget_block_info() {
+  $blocks = array();
+
+  $blocks['social_chat_widget'] = array(
+    'info' => t('Social chat widget'),
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function social_chat_widget_block_configure($delta = '') {
+  $form = array();
+
+  if ($delta == 'social_chat_widget') {
+      
+    $help_message = 'Tip! Make sure all your custom icons are exactly the same size. By default they are 55x55px.';
+    drupal_set_message(t($help_message), 'status');
+    
+    $form['social_chat_widget_chat_icon'] = array(
+          '#title' => t('Chat icon'),
+          '#type' => 'managed_file',
+          '#description' => t('The uploaded image will be displayed on this page and will open the social icons. Leave to use the default icon.'),
+          '#default_value' => variable_get('social_chat_widget_chat_icon', drupal_get_path('module', 'social_chat_widget') . '/images/chat-icons-chat.png'),
+          '#upload_location' => 'public://',
+      );
+    
+    $form['social_chat_widget_phone'] = array( 
+        '#type' => 'fieldset', 
+        '#title' => t('Phone settings'), 
+        '#collapsible' => TRUE, 
+        '#collapsed' => TRUE, 
+        ); 
+    $form['social_chat_widget_phone']['social_chat_widget_phone_icon_display'] = array(
+        '#type' => 'radios',
+        '#title' => t('Display phone icon.'),
+        '#options' => array(
+          'no' => t('No'),
+          'yes' => t('Yes'),
+        ),
+        '#default_value' =>  variable_get('social_chat_widget_phone_icon_display', 'no'),
+      );
+    $form['social_chat_widget_phone']['social_chat_widget_phone_number'] = array( 
+          '#type' => 'textfield', 
+          '#title' => t('Phone number'), 
+          '#default_value' => variable_get('social_chat_widget_phone_number', ''), 
+          '#description' => t('Enter your phone number, including your country code ie +44 or +1. Do not include spaces or special charactors.'),
+          '#size' => 60, 
+          '#maxlengt' => 128, 
+          '#require' => false 
+      ); 
+     $form['social_chat_widget_phone']['social_chat_widget_phone_icon'] = array(
+          '#title' => t('Custom phone icon'),
+          '#type' => 'managed_file',
+          '#description' => t('The uploaded custom icon for the Telephone icon. Leave to use the default icon.'),
+          '#default_value' => variable_get('social_chat_widget_phone_icon', drupal_get_path('module', 'social_chat_widget') . '/images/phone-icon.png'),
+          '#upload_location' => 'public://',
+      );
+
+     $form['social_chat_widget_email'] = array( 
+        '#type' => 'fieldset', 
+        '#title' => t('Email settings'), 
+        '#collapsible' => TRUE, 
+        '#collapsed' => TRUE, 
+        ); 
+    $form['social_chat_widget_email']['social_chat_widget_email_icon_display'] = array(
+        '#type' => 'radios',
+        '#title' => t('Display email icon.'),
+        '#options' => array(
+            'no' => t('No'),
+            'yes' => t('Yes')
+
+        ),
+        '#default_value' =>  variable_get('social_chat_widget_email_icon_display', 'no'),
+      );
+    $form['social_chat_widget_email']['social_chat_widget_email_email_contact'] = array(
+        '#type' => 'radios',
+        '#title' => t('What to link to.'),
+        '#options' => array(
+            'contact' => t('Contact page'),
+            'email' => t('Email address')
+
+        ),
+        '#default_value' =>  variable_get('social_chat_widget_email_email_contact', 'contact'),
+      );
+    $form['social_chat_widget_email']['social_chat_widget_email_address'] = array( 
+          '#type' => 'textfield', 
+          '#title' => t('Email address'), 
+          '#default_value' => variable_get('social_chat_widget_email_address', ''), 
+          '#description' => t('Enter your email address.'),
+          '#size' => 60, 
+          '#maxlengt' => 128, 
+          '#require' => false 
+      );
+    $form['social_chat_widget_email']['social_chat_widget_contact_page'] = array( 
+          '#type' => 'textfield', 
+          '#title' => t('Contact page.'), 
+          '#default_value' => variable_get('social_chat_widget_contact_page', ''), 
+          '#description' => t('Enter a drupal path ie node/1 or an external url.'),
+          '#size' => 60, 
+          '#maxlengt' => 128, 
+          '#require' => false 
+      );
+    $form['social_chat_widget_email']['social_chat_widget_email_icon'] = array(
+          '#title' => t('Custom email icon'),
+          '#type' => 'managed_file',
+          '#description' => t('The uploaded image will be used for the Email icon. Leave to use the default icon.'),
+          '#default_value' => variable_get('social_chat_widget_email_icon', drupal_get_path('module', 'social_chat_widget') . '/images/chat-icons-email.png'),
+          '#upload_location' => 'public://',
+      );
+
+    $form['social_chat_widget_facebook'] = array( 
+        '#type' => 'fieldset', 
+        '#title' => t('Facebook settings'), 
+        '#collapsible' => TRUE, 
+        '#collapsed' => TRUE, 
+        ); 
+    $form['social_chat_widget_facebook']['social_chat_widget_facebook_icon_display'] = array(
+        '#type' => 'radios',
+        '#title' => t('Display Facebook icon.'),
+        '#options' => array(
+            'no' => t('No'),
+            'yes' => t('Yes')
+
+        ),
+        '#default_value' =>  variable_get('social_chat_widget_facebook_icon_display', 'no'),
+      );
+    $form['social_chat_widget_facebook']['social_chat_widget_facebook_page'] = array( 
+          '#type' => 'textfield', 
+          '#title' => t('Facebook page name'), 
+          '#default_value' => variable_get('social_chat_widget_facebook_page', ''), 
+          '#description' => t('Enter your Facebook page name. Visit your page and look at the url.'),
+          '#size' => 60, 
+          '#maxlengt' => 128, 
+          '#require' => false 
+      );
+    $form['social_chat_widget_facebook']['social_chat_widget_facebook_icon'] = array(
+          '#title' => t('Custom Facebook icon'),
+          '#type' => 'managed_file',
+          '#description' => t('The uploaded image will be used for the Facebook Messenger icon. Leave to use the default icon.'),
+          '#default_value' => variable_get('social_chat_widget_facebook_icon', drupal_get_path('module', 'social_chat_widget') . '/images/facebook-messenger.png'),
+          '#upload_location' => 'public://',
+      );
+    
+     $form['social_chat_widget_instagram'] = array( 
+        '#type' => 'fieldset', 
+        '#title' => t('Instagram settings'), 
+        '#collapsible' => TRUE, 
+        '#collapsed' => TRUE, 
+        ); 
+    $form['social_chat_widget_instagram']['social_chat_widget_instagram_icon_display'] = array(
+        '#type' => 'radios',
+        '#title' => t('Display Instagram icon.'),
+        '#options' => array(
+            'no' => t('No'),
+            'yes' => t('Yes')
+
+        ),
+        '#default_value' =>  variable_get('social_chat_widget_instagram_icon_display', 'no'),
+      );
+    $form['social_chat_widget_instagram']['social_chat_widget_instagram_user'] = array( 
+          '#type' => 'textfield', 
+          '#title' => t('Instagram user name'), 
+          '#default_value' => variable_get('social_chat_widget_instagram_user', ''), 
+          '#description' => t('Enter your Instagram user name. Visit your page and look at the url.'),
+          '#size' => 60, 
+          '#maxlengt' => 128, 
+          '#require' => false 
+      );
+    $form['social_chat_widget_instagram']['social_chat_widget_instagram_icon'] = array(
+          '#title' => t('Custom Instagram icon'),
+          '#type' => 'managed_file',
+          '#description' => t('The uploaded image will be used for the Instagram Direct Message icon.'),
+          '#default_value' => variable_get('social_chat_widget_instagram_icon', drupal_get_path('module', 'social_chat_widget') . '/images/instagram-direct-message.png'),
+          '#upload_location' => 'public://',
+      );
+
+    $form['social_chat_widget_whatsapp'] = array( 
+        '#type' => 'fieldset', 
+        '#title' => t('WhatsApp settings'), 
+        '#collapsible' => TRUE, 
+        '#collapsed' => TRUE, 
+        ); 
+    $form['social_chat_widget_whatsapp']['social_chat_widget_whatsapp_icon_display'] = array(
+        '#type' => 'radios',
+        '#title' => t('Display WhatsApp icon.'),
+        '#options' => array(
+            'no' => t('No'),
+            'yes' => t('Yes')
+
+        ),
+        '#default_value' =>  variable_get('social_chat_widget_whatsapp_icon_display', 'no'),
+      );
+    $form['social_chat_widget_whatsapp']['social_chat_widget_whatsapp_number'] = array( 
+          '#type' => 'textfield', 
+          '#title' => t('WhatsApp phone number'), 
+          '#default_value' => variable_get('social_chat_widget_whatsapp_number', ''), 
+          '#description' => t('Enter your WhatsApp phone number. Do include your country code ie 44, 33 or 1. Do NOT include any special charactors and omit the beginning 0s.'),
+          '#size' => 60, 
+          '#maxlengt' => 128, 
+          '#require' => false 
+      );
+    $form['social_chat_widget_whatsapp']['social_chat_widget_whatsapp_icon'] = array(
+          '#title' => t('Custom WhatsApp icon'),
+          '#type' => 'managed_file',
+          '#description' => t('The uploaded image will be used for the WhatsApp icon.'),
+          '#default_value' => variable_get('social_chat_widget_whatsapp_icon', drupal_get_path('module', 'social_chat_widget') . '/images/whatsapp-chat.png'),
+          '#upload_location' => 'public://',
+      );
+
+    $form['social_chat_widget_skype'] = array( 
+          '#type' => 'fieldset', 
+          '#title' => t('Skype settings'), 
+          '#collapsible' => TRUE, 
+          '#collapsed' => TRUE, 
+      ); 
+    $form['social_chat_widget_skype']['social_chat_widget_skype_icon_display'] = array(
+        '#type' => 'radios',
+        '#title' => t('Display WhatsApp icon.'),
+        '#options' => array(
+            'no' => t('No'),
+            'yes' => t('Yes')
+        ),
+        '#default_value' =>  variable_get('social_chat_widget_skype_icon_display', 'no'),
+      );
+    $form['social_chat_widget_skype']['social_chat_widget_skype_name'] = array( 
+          '#type' => 'textfield', 
+          '#title' => t('Skype user name.'), 
+          '#default_value' => variable_get('social_chat_widget_skype_name', ''), 
+          '#description' => t('Enter your Skype user name.'),
+          '#size' => 60, 
+          '#maxlengt' => 128, 
+          '#require' => false 
+      );
+    $form['social_chat_widget_skype']['social_chat_widget_skype_icon'] = array(
+          '#title' => t('Custom Skype icon'),
+          '#type' => 'managed_file',
+          '#description' => t('The uploaded image will be used for the WhatsApp icon.'),
+          '#default_value' => variable_get('social_chat_widget_skype_icon', drupal_get_path('module', 'social_chat_widget') . '/images/skype-chat.png'),
+          '#upload_location' => 'public://',
+      );    
+    }
+
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function social_chat_widget_block_save($delta = '', $edit = array()) {
+  if ($delta == 'social_chat_widget') {
+      
+      // Save all values as variables
+      variable_set('social_chat_widget_chat_icon', $edit['social_chat_widget_chat_icon']);
+      
+      variable_set('social_chat_widget_phone_icon', $edit['social_chat_widget_phone_icon']);
+      variable_set('social_chat_widget_phone_icon_display', $edit['social_chat_widget_phone_icon_display']);
+      variable_set('social_chat_widget_phone_number', $edit['social_chat_widget_phone_number']);
+
+      variable_set('social_chat_widget_email_icon', $edit['social_chat_widget_email_icon']);
+      variable_set('social_chat_widget_email_icon_display', $edit['social_chat_widget_email_icon_display']);
+      variable_set('social_chat_widget_email_email_contact', $edit['social_chat_widget_email_email_contact']);
+      variable_set('social_chat_widget_email_address', $edit['social_chat_widget_email_address']);
+      variable_set('social_chat_widget_contact_page', $edit['social_chat_widget_contact_page']);
+
+      variable_set('social_chat_widget_facebook_icon', $edit['social_chat_widget_facebook_icon']);
+      variable_set('social_chat_widget_facebook_icon_display', $edit['social_chat_widget_facebook_icon_display']);
+      variable_set('social_chat_widget_facebook_page', $edit['social_chat_widget_facebook_page']);
+      
+      variable_set('social_chat_widget_instagram_icon', $edit['social_chat_widget_instagram_icon']);
+      variable_set('social_chat_widget_instagram_icon_display', $edit['social_chat_widget_instagram_icon_display']);
+      variable_set('social_chat_widget_instagram_user', $edit['social_chat_widget_instagram_user']);
+      
+      variable_set('social_chat_widget_whatsapp_icon', $edit['social_chat_widget_whatsapp_icon']);
+      variable_set('social_chat_widget_whatsapp_icon_display', $edit['social_chat_widget_whatsapp_icon_display']);
+      variable_set('social_chat_widget_whatsapp_number', $edit['social_chat_widget_whatsapp_number']);
+      
+      variable_set('social_chat_widget_skype_icon', $edit['social_chat_widget_skype_icon']);
+      variable_set('social_chat_widget_skype_icon_display', $edit['social_chat_widget_skype_icon_display']);
+      variable_set('social_chat_widget_skype_name', $edit['social_chat_widget_skype_name']);    
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function social_chat_widget_block_view($delta = '') {
+  if ($delta == 'social_chat_widget') {
+      
+      // Assign display settings
+      $display_phone = variable_get('social_chat_widget_phone_icon_display');
+      $display_email = variable_get('social_chat_widget_email_icon_display');
+      $display_fb = variable_get('social_chat_widget_facebook_icon_display');
+      $display_insta = variable_get('social_chat_widget_instagram_icon_display');
+      $display_whatsapp = variable_get('social_chat_widget_whatsapp_icon_display');
+      $display_skype = variable_get('social_chat_widget_skype_icon_display');
+      $content = '';
+      
+      // If something is set to display, build the blocks content.
+      if ($display_phone || $display_email || $display_fb || $display_insta || $display_whatsapp || $display_skype) {
+          $content .= '<div id="chat-widget" 
+                        data-aos="zoom-in-left" 
+                        data-aos-easing="ease-in-out" 
+                        data-aos-once="true" 
+                        data-aos-duration="1000">
+                        
+                        <div class="example" id="events-example">
+                        <h3 class="open"></h3>
+                        <div>';
+      // Phone chat icon
+      $phone = variable_get('social_chat_widget_phone_number');
+      if ($display_phone == 'yes' && $phone !== ''){
+        
+        $phone_icon_fid = variable_get('social_chat_widget_phone_icon');
+        if ($phone_icon_fid != 0) {
+            $phone_icon_path = file_load($phone_icon_fid)->uri;
+            $phone_icon_url = base_path() . file_create_url($phone_icon_path);
+            
+        } else {
+            $phone_icon_url = base_path() . drupal_get_path('module', 'social_chat_widget') . '/images/chat-icons-phone.png';
+        }
+        $content .= '<a target="_blank" href="tel:' . $phone . '" title="Call us" class="chat-icon inline" data-tipped-options="inline: \'phone-tooltip\'"><img src="' . $phone_icon_url . '" alt="Call us"></a><br>';
+        $content .= '<div id="phone-tooltip" style="display:none;"><a target="_blank" href="tel:' . $phone . '" title="Call us" class="btn btn-phone-call">Call us</a></div>';
+          
+                
+      }
+      
+      // Email chat icon
+      
+      if ($display_email == 'yes') {
+          $email_icon_fid = variable_get('social_chat_widget_email_icon');
+          if ($email_icon_fid != 0) {
+            $email_icon_path = file_load($email_icon_fid )->uri;
+            $email_icon_url = base_path() . file_create_url($email_icon_path);
+          } else {
+              $email_icon_url = base_path() . drupal_get_path('module', 'social_chat_widget') . '/images/chat-icons-email.png';
+          }
+          $display_email_contact = variable_get('social_chat_widget_email_email_contact');
+          $email = variable_get('social_chat_widget_email_address');
+          $contact_page = variable_get('social_chat_widget_contact_page');
+          
+          if ($display_email_contact == 'email' && $email != '') {
+              $contact_link = 'mailto:' . $email;
+          } elseif ($display_email_contact == 'contact' && $contact_page != '') {
+              $contact_link = url($contact_page, array('alias' => false));
+          } 
+          if ($contact_link != '') {
+            $content .= '<a target="_blank" href="' . $contact_link . '" title="Chat to us via email" class="chat-icon inline" data-tipped-options="inline: \'email-tooltip\'"><img src="' . $email_icon_url . '" alt="Contact us via Email"></a><br>';
+            $content .= '<div id="email-tooltip" style="display:none;"><a target="_blank" href="' . $contact_link . '" title="Email us" class="btn btn-email">Email us</a></div>';
+          }
+      }
+      
+      // Facebook Messenger icon
+      $fb_page = variable_get('social_chat_widget_facebook_page');
+      if ($display_fb == 'yes' && $fb_page != '') {
+          $fb_icon_fid = variable_get('social_chat_widget_facebook_icon');
+          if ($fb_icon_fid != 0) {
+            $fb_icon_path = file_load($fb_icon_fid)->uri;
+            $fb_icon_url = base_path() . file_create_url($fb_icon_path);  
+          } else {
+              $fb_icon_url = base_path() . drupal_get_path('module', 'social_chat_widget') . '/images/facebook-messenger.png';
+          }
+          $content .= '<a target="_blank" href="http://m.me/' . $fb_page . '" title="Chat to us via Facebook Messenger" class="chat-icon inline" data-tipped-options="inline: \'fb-chat-tooltip\'"><img src="' . $fb_icon_url . '" alt="Chat via Facebook Messenger"></a><br>';
+          $content .= '<div id="fb-chat-tooltip" style="display:none;"><a target="_blank" href="http://m.me/' . $fb_page . '" title="Open Facebook Messenger" class="btn btn-fb">Open Facebook Messenger</a></div>';
+      }
+      
+      // Instagram icon
+      $insta_user = variable_get('social_chat_widget_instagram_user');
+      if ($display_insta == 'yes' && $insta_user != '') {
+          $insta_icon_fid = variable_get('social_chat_widget_instagram_icon');
+          if ($insta_icon_fid != 0) {
+            $insta_icon_path = file_load($insta_icon_fid)->uri;
+            $insta_icon_url = base_path() . file_create_url($insta_icon_path);
+          } else {
+            $insta_icon_url = base_path() . drupal_get_path('module', 'social_chat_widget') . '/images/instagram-chat.png';
+          }
+          $content .= '<a target="_blank" href="https://www.instagram.com/' . $insta_user . '" title="Chat to us via Instagram" class="chat-icon inline" data-tipped-options="inline: \'insta-chat-tooltip\'"><img src="' . $insta_icon_url . '" alt="Chat via Instagram"></a><br>';
+          $content .= '<div id="insta-chat-tooltip" style="display:none;"><a target="_blank" href="https://www.instagram.com/' . $insta_user . '" title="Open Instagram" class="btn btn-instagram">Open Instagram</a></div>';
+      }
+      
+      // WhatsApp icon
+      $whatsapp_phone = variable_get('social_chat_widget_whatsapp_number');
+      if ($display_whatsapp == 'yes' && $whatsapp_phone != '') {
+          $whatsapp_icon_fid = variable_get('social_chat_widget_whatsapp_icon');
+          if ($whatsapp_icon_fid != 0) {
+            $whatsapp_icon_path = file_load($whatsapp_icon_fid)->uri;
+            $whatsapp_icon_url = base_path() . file_create_url($whatsapp_icon_path);
+            
+          } else {
+              $whatsapp_icon_url = base_path() . drupal_get_path('module', 'social_chat_widget') . '/images/whatsapp-chat.png';
+          }
+          $content .= '<a target="_blank" href="https://wa.me/' . $whatsapp_phone . '" title="Chat to us via WhatsApp" class="chat-icon inline" data-tipped-options="inline: \'whatsapp-chat-tooltip\'"><img src="' . $whatsapp_icon_url . '" alt="Chat via WhatsApp"></a><br>';
+          $content .= '<div id="whatsapp-chat-tooltip" style="display:none;"><a target="_blank" href="https://wa.me/' . $whatsapp_phone . '" title="Chat to us via WhatsApp"  class="btn btn-whatsapp">Open WhatsApp</a></div>';
+      }
+       // Skype icon
+      $skype_user = variable_get('social_chat_widget_skype_name');
+      if ($display_skype == 'yes' && $skype_user != '') {
+          $skype_icon_fid = variable_get('social_chat_widget_skype_icon');
+          if ($skype_icon_fid != 0) {
+            $skype_icon_path = file_load($skype_icon_fid)->uri;
+            $skype_icon_url = base_path() . file_create_url($skype_icon_path);
+          } else {
+              $skype_icon_url = base_path() . drupal_get_path('module', 'social_chat_widget') . '/images/skype-chat.png';
+          }
+          $content .= '<a target="_blank" href="skype:' . $skype_user . '?chat" title="Chat to us via Skype" class="chat-icon inline" data-tipped-options="inline: \'skype-chat-tooltip\'"><img src="' . $skype_icon_url . '" alt="Chat via Skype"></a><br>';
+          $content .= '<div id="skype-chat-tooltip" style="display:none;"><a target="_blank" href="skype:' . $skype_user . '?chat" title="Chat to us via Skype"  class="btn btn-skype">Open Skype</a></div>';
+      }
+         $content .= '</div></div>';         
+    // Chat icon  
+      
+      $chat_icon_fid = variable_get('social_chat_widget_chat_icon');
+    if ($chat_icon_fid != 0) {
+        $chat_icon_path = file_load($chat_icon_fid )->uri;
+        $chat_icon_url = base_path() . file_create_url($imgpath); 
+    } else {
+        $chat_icon_url = base_path() . drupal_get_path('module', 'social_chat_widget') . '/images/chat-icons-chat.png';
+    }
+    $content .= '<div id="open-chat-icon">
+                <a id="btn-toggle-last" class="chat-button inline" data-tipped-options="inline: \'chat-tooltip\', maxWidth: 200" role="button">
+                <img src="' . $chat_icon_url . '"></a></div></div>
+            .   <div id="chat-tooltip" style="display:none;">Get in touch via email, phone or popular social networks.</div>';
+    
+    // Add to the block array and return it
+    $block['subject'] = 'Social chat widget';
+    $block['content'] = $content;
+
+    return $block;
+  }
+
+      
+    }
+}
+

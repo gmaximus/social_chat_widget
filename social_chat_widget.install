@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * Installs, updates, and uninstalls the Commerce Cart Estimate module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function social_chat_widget_uninstall() {
+      // Delete all values as variables
+      variable_del('social_chat_widget_chat_icon');
+      
+      variable_del('social_chat_widget_phone_icon');
+      variable_del('social_chat_widget_phone_icon_display');
+      variable_del('social_chat_widget_phone_number');
+
+      variable_del('social_chat_widget_email_icon');
+      variable_del('social_chat_widget_email_icon_display');
+      variable_del('social_chat_widget_email_address');
+      variable_del('social_chat_widget_email_email_contact');
+      variable_del('social_chat_widget_contact_page');
+
+      variable_del('social_chat_widget_facebook_icon');
+      variable_del('social_chat_widget_facebook_icon_display');
+      variable_del('social_chat_widget_facebook_page');
+      
+      variable_del('social_chat_widget_instagram_icon');
+      variable_del('social_chat_widget_instagram_icon_display');
+      variable_del('social_chat_widget_instagram_user');
+      
+      variable_del('social_chat_widget_whatsapp_icon');
+      variable_del('social_chat_widget_whatsapp_icon_display');
+      variable_del('social_chat_widget_whatsapp_number');
+      
+      variable_del('social_chat_widget_skype_icon');
+      variable_del('social_chat_widget_skype_icon_display');
+      variable_del('social_chat_widget_skype_name');   
+}

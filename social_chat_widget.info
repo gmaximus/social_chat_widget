@@ -1,0 +1,4 @@
+name = Social chat widget
+description = Adds a chat icon to pages via a block. The icons open up the relevant platform. This depends on Bootstrap being in your theme.
+package = Other
+core = 7.x
